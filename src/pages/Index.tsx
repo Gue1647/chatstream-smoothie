@@ -10,6 +10,14 @@ interface Message {
   content: string;
 }
 
+const formatMessage = (text: string) => {
+  return text
+    .replace(/\\n\\n/g, '<br><br>') // Handle double line breaks first
+    .replace(/\\n/g, '<br>') // Handle single line breaks
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Handle bold text
+    .replace(/\\"/g, '"') // Remove escaped quotes
+};
+
 const Index = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -104,16 +112,20 @@ const Index = () => {
                     ? "bg-purple-600 text-white"
                     : "bg-white dark:bg-gray-700 shadow-sm"
                 )}
-              >
-                {message.content}
-              </div>
+                dangerouslySetInnerHTML={{
+                  __html: formatMessage(message.content)
+                }}
+              />
             </div>
           ))}
           {currentResponse && (
             <div className="flex w-full justify-start">
-              <div className="max-w-[80%] rounded-lg px-4 py-2 bg-white dark:bg-gray-700 shadow-sm">
-                {currentResponse}
-                <span className="animate-pulse">▊</span>
+              <div 
+                className="max-w-[80%] rounded-lg px-4 py-2 bg-white dark:bg-gray-700 shadow-sm"
+                dangerouslySetInnerHTML={{
+                  __html: formatMessage(currentResponse)
+                }}
+              >
               </div>
             </div>
           )}
