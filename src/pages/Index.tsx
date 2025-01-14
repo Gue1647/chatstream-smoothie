@@ -12,10 +12,10 @@ interface Message {
 
 const formatMessage = (text: string) => {
   return text
-    .replace(/\\n\\n/g, '<br><br>') // Handle double line breaks first
-    .replace(/\\n/g, '<br>') // Handle single line breaks
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Handle bold text
-    .replace(/\\"/g, '"') // Remove escaped quotes
+    .replace(/\\n\\n/g, '<br><br>') 
+    .replace(/\\n/g, '<br>') 
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') 
+    .replace(/\\"/g, '"') 
 };
 
 const Index = () => {
@@ -61,9 +61,10 @@ const Index = () => {
 
       setCurrentResponse("");
       
-      while (true) {
+      let buffer = "";
+      const processChunk = async () => {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) return true;
 
         const text = new TextDecoder().decode(value);
         const lines = text.split("\n");
@@ -74,15 +75,24 @@ const Index = () => {
           if (line.startsWith("0:")) {
             setIsTyping(false);
             const content = line.slice(2).replace(/^"|"$/g, "");
-            setCurrentResponse((prev) => prev + content);
+            buffer += content;
+            
+            // Add a small delay between characters for a more natural typing effect
+            await new Promise(resolve => setTimeout(resolve, 25));
+            setCurrentResponse(buffer);
           } else if (line.startsWith("e:") || line.startsWith("d:")) {
-            // Stream finished, add message to history
             setCurrentResponse((prev) => {
               setMessages((msgs) => [...msgs, { role: "assistant", content: prev }]);
               return "";
             });
           }
         }
+        return false;
+      };
+
+      while (true) {
+        const isDone = await processChunk();
+        if (isDone) break;
       }
     } catch (error) {
       toast({
@@ -127,9 +137,9 @@ const Index = () => {
               <div className="max-w-[80%] rounded-lg px-4 py-2 bg-white dark:bg-gray-700 shadow-sm flex items-center space-x-2">
                 <span>Bot is typing</span>
                 <span className="flex space-x-1">
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0ms' }}></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '150ms' }}></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '300ms' }}></span>
                 </span>
               </div>
             </div>
