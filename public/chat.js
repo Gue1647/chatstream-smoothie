@@ -10,19 +10,23 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const formatMessage = (content) => {
-        // Replace \n with <br> and handle paragraphs
-        return content
-            .split('\n')
-            .map(paragraph => paragraph.trim())
-            .filter(paragraph => paragraph.length > 0)
-            .join('</p><p>');
+        // Handle double line breaks first
+        content = content.replace(/\\n\\n/g, '</p><br><p>');
+        // Handle single line breaks
+        content = content.replace(/\\n/g, '<br>');
+        // Handle bold text
+        content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        // Remove any extra quotes that might have been added by JSON
+        content = content.replace(/\\"/g, '"');
+        
+        return content;
     };
 
     const createMessageElement = (content, role) => {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${role}`;
         
-        // Wrap content in paragraph tags and handle line breaks
+        // Wrap content in paragraph tags and handle formatting
         messageDiv.innerHTML = `<p>${formatMessage(content)}</p>`;
         
         if (isArabicText(content)) {
