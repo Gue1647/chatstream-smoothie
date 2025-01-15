@@ -10,6 +10,11 @@ interface Message {
   content: string;
 }
 
+const isArabicText = (text: string) => {
+  const arabicPattern = /[\u0600-\u06FF]/;
+  return arabicPattern.test(text);
+};
+
 const formatMessage = (text: string) => {
   return text
     .replace(/\\n\\n/g, '<br><br>') 
@@ -111,27 +116,31 @@ const Index = () => {
     <div className="flex flex-col h-screen bg-gradient-to-br from-purple-50 to-white dark:from-gray-900 dark:to-gray-800">
       <main className="flex-1 overflow-y-auto p-4 space-y-4">
         <div className="max-w-3xl mx-auto space-y-4">
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={cn(
-                "flex w-full",
-                message.role === "user" ? "justify-end" : "justify-start"
-              )}
-            >
+          {messages.map((message, index) => {
+            const isArabic = isArabicText(message.content);
+            return (
               <div
+                key={index}
                 className={cn(
-                  "max-w-[80%] rounded-lg px-4 py-2",
-                  message.role === "user"
-                    ? "bg-purple-600 text-white"
-                    : "bg-white dark:bg-gray-700 shadow-sm"
+                  "flex w-full",
+                  message.role === "user" ? "justify-end" : "justify-start"
                 )}
-                dangerouslySetInnerHTML={{
-                  __html: formatMessage(message.content)
-                }}
-              />
-            </div>
-          ))}
+              >
+                <div
+                  className={cn(
+                    "max-w-[80%] rounded-lg px-4 py-2",
+                    message.role === "user"
+                      ? "bg-purple-600 text-white"
+                      : "bg-white dark:bg-gray-700 shadow-sm"
+                  )}
+                  style={{ direction: isArabic ? 'rtl' : 'ltr' }}
+                  dangerouslySetInnerHTML={{
+                    __html: formatMessage(message.content)
+                  }}
+                />
+              </div>
+            );
+          })}
           {isTyping && !currentResponse && (
             <div className="flex w-full justify-start">
               <div className="max-w-[80%] rounded-lg px-4 py-2 bg-white dark:bg-gray-700 shadow-sm flex items-center space-x-2">
@@ -148,6 +157,7 @@ const Index = () => {
             <div className="flex w-full justify-start">
               <div 
                 className="max-w-[80%] rounded-lg px-4 py-2 bg-white dark:bg-gray-700 shadow-sm"
+                style={{ direction: isArabicText(currentResponse) ? 'rtl' : 'ltr' }}
                 dangerouslySetInnerHTML={{
                   __html: formatMessage(currentResponse)
                 }}
