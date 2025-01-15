@@ -9,10 +9,21 @@ document.addEventListener('DOMContentLoaded', () => {
         return arabicPattern.test(text);
     };
 
+    const formatMessage = (content) => {
+        // Replace \n with <br> and handle paragraphs
+        return content
+            .split('\n')
+            .map(paragraph => paragraph.trim())
+            .filter(paragraph => paragraph.length > 0)
+            .join('</p><p>');
+    };
+
     const createMessageElement = (content, role) => {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${role}`;
-        messageDiv.textContent = content;
+        
+        // Wrap content in paragraph tags and handle line breaks
+        messageDiv.innerHTML = `<p>${formatMessage(content)}</p>`;
         
         if (isArabicText(content)) {
             messageDiv.dir = 'rtl';
@@ -34,10 +45,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return typing;
     };
 
+    const scrollToBottom = () => {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    };
+
     const appendMessage = (content, role) => {
         const messageElement = createMessageElement(content, role);
         messagesContainer.appendChild(messageElement);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        scrollToBottom();
     };
 
     const processStreamResponse = async (response) => {
@@ -47,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const typing = createTypingIndicator();
         messagesContainer.appendChild(typing);
+        scrollToBottom();
 
         while (true) {
             const { done, value } = await reader.read();
@@ -61,7 +77,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (line.startsWith('0:')) {
                     const content = line.slice(2).replace(/^"|"$/g, '');
                     buffer += content;
-                    typing.textContent = buffer;
+                    typing.innerHTML = `<p>${formatMessage(buffer)}</p>`;
+                    scrollToBottom();
                 } else if (line.startsWith('e:') || line.startsWith('d:')) {
                     typing.remove();
                     appendMessage(buffer, 'assistant');
