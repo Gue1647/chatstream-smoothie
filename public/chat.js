@@ -11,13 +11,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const formatMessage = (content) => {
         // Handle double line breaks first
-        content = content.replace(/\\n\\n/g, '</p><br><p>');
+        content = content.replace(/\\n\\n/g, '</p><p>');
         // Handle single line breaks
         content = content.replace(/\\n/g, '<br>');
         // Handle bold text
         content = content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
         // Remove any extra quotes that might have been added by JSON
         content = content.replace(/\\"/g, '"');
+        // Remove markdown headers
+        content = content.replace(/###\s/g, '');
         
         return content;
     };
