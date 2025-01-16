@@ -17,10 +17,11 @@ const isArabicText = (text: string) => {
 
 const formatMessage = (text: string) => {
   return text
-    .replace(/\\n\\n/g, '<br><br>')
+    .replace(/\\n\\n/g, '</p><p>')
     .replace(/\\n/g, '<br>')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\\"/g, '"')
+    .replace(/###\s/g, '');
 };
 
 const Index = () => {
@@ -82,12 +83,13 @@ const Index = () => {
             const content = line.slice(2).replace(/^"|"$/g, "");
             buffer += content;
             
-            // Add a small delay between characters for a more natural typing effect
             await new Promise(resolve => setTimeout(resolve, 25));
             setCurrentResponse(buffer);
           } else if (line.startsWith("e:") || line.startsWith("d:")) {
             setCurrentResponse((prev) => {
-              setMessages((msgs) => [...msgs, { role: "assistant", content: prev }]);
+              if (prev.trim()) {
+                setMessages((msgs) => [...msgs, { role: "assistant", content: prev }]);
+              }
               return "";
             });
           }
@@ -142,10 +144,9 @@ const Index = () => {
               </div>
             );
           })}
-          {isTyping && !currentResponse && (
+          {isTyping && (
             <div className="flex w-full justify-start">
               <div className="max-w-[80%] rounded-2xl px-6 py-3 bg-white/90 dark:bg-gray-700/90 shadow-lg backdrop-blur-sm border border-gray-100 dark:border-gray-600 flex items-center space-x-2">
-                <span className="text-gray-600 dark:text-gray-300">Bot is typing</span>
                 <span className="flex space-x-1">
                   <span className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" style={{ animationDelay: '0ms' }}></span>
                   <span className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" style={{ animationDelay: '150ms' }}></span>
@@ -162,8 +163,7 @@ const Index = () => {
                 dangerouslySetInnerHTML={{
                   __html: formatMessage(currentResponse)
                 }}
-              >
-              </div>
+              />
             </div>
           )}
           <div ref={messagesEndRef} />
@@ -178,6 +178,7 @@ const Index = () => {
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type your message..."
               disabled={isLoading}
+              autoComplete="off"
               className="bg-white/80 dark:bg-gray-700/80 backdrop-blur-sm border-gray-200 dark:border-gray-600 focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 transition-all duration-200"
             />
             <Button 
